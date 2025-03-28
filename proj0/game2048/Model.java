@@ -109,11 +109,54 @@ public class Model extends Observable {
     public boolean tilt(Side side) {
         boolean changed;
         changed = false;
-
+        int size = board.size();
         // TODO: Modify this.board (and perhaps this.score) to account
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
+        // 设置当前视角，将其他方向视为NORTH处理
+        board.setViewingPerspective(side);
 
+        for (int col = 0; col < size; col++) {
+            int targetRow = size - 1; // 初始目标行是当前视角的顶部
+            Tile prevTile = null;
+
+            // 从顶部向下遍历（处理合并的关键）
+            for (int currentRow = size - 1; currentRow >= 0; currentRow--) {
+                Tile tile = board.tile(col, currentRow);
+                if (tile == null) continue;
+
+                if (prevTile == null) {
+                    // 移动或保持当前位置
+                    if (currentRow != targetRow) {
+                        board.move(col, targetRow, tile);
+                        changed = true;
+                    }
+                    prevTile = board.tile(col, targetRow);
+                } else {
+                    if (prevTile.value() == tile.value()) {
+                        // 合并到目标行
+                        boolean merged = board.move(col, targetRow, tile);
+                        if (merged) {
+                            score += tile.value() * 2;
+                            changed = true;
+                            prevTile = null; // 合并后重置，防止连续合并
+                            targetRow--; // 合并后目标行下移
+                        }
+                    } else {
+                        // 移动到新的目标行
+                        targetRow--; // 更新目标行到上一个可用位置
+                        if (currentRow != targetRow) {
+                            board.move(col, targetRow, tile);
+                            changed = true;
+                        }
+                        prevTile = board.tile(col, targetRow);
+                    }
+                }
+            }
+        }
+
+        // 恢复默认视角（NORTH）
+        board.setViewingPerspective(Side.NORTH);
         checkGameOver();
         if (changed) {
             setChanged();
@@ -137,7 +180,17 @@ public class Model extends Observable {
      *  Empty spaces are stored as null.
      * */
     public static boolean emptySpaceExists(Board b) {
-        // TODO: Fill in this function.
+        int size = b.size();
+        for (int x = 0; x < size; x++)
+        {
+            for (int y = 0; y < size; y++)
+            {
+                if(b.tile(x, y) == null)
+                {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -147,7 +200,15 @@ public class Model extends Observable {
      * given a Tile object t, we get its value with t.value().
      */
     public static boolean maxTileExists(Board b) {
-        // TODO: Fill in this function.
+        int size = b.size();
+        for (int x = 0; x < size; x++) {
+            for (int y = 0; y < size; y++) {
+                Tile t = b.tile(x, y);
+                if (t != null && t.value() == MAX_PIECE) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -158,7 +219,27 @@ public class Model extends Observable {
      * 2. There are two adjacent tiles with the same value.
      */
     public static boolean atLeastOneMoveExists(Board b) {
-        // TODO: Fill in this function.
+        int size = b.size();
+        for (int x = 0; x < size; x++) {
+            for (int y = 0; y < size; y++) {
+                Tile cur = b.tile(x, y);
+                if (cur == null) {
+                    return true;
+                }
+                if (x < size - 1) {
+                    Tile next = b.tile(x + 1, y);
+                    if (next != null && next.value() == cur.value()) {
+                        return true;
+                    }
+                }
+                if (y < size - 1) {
+                    Tile next = b.tile(x, y + 1);
+                    if (next != null && next.value() == cur.value()) {
+                        return true;
+                    }
+                }
+            }
+        }
         return false;
     }
 

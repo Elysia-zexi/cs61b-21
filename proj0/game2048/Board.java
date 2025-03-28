@@ -46,7 +46,7 @@ public class Board implements Iterable<Tile> {
         }
     }
 
-    /** Returns the size of the board. */
+    /** 返回棋盘的大小。. */
     public int size() {
         return values.length;
     }
@@ -62,8 +62,8 @@ public class Board implements Iterable<Tile> {
         return values[side.col(col, row, size())][side.row(col, row, size())];
     }
 
-    /** Return the current Tile at (COL, ROW), where 0 <= ROW < size(),
-     *  0 <= COL < size(). Returns null if there is no tile there. */
+    /**返回位于 (COL, ROW) 的当前方块，其中 0 <= ROW < size()，size()。
+     * 如果该位置没有方块，则返回 null */
     public Tile tile(int col, int row) {
         return vtile(col, row, viewPerspective);
     }
